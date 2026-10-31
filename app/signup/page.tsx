@@ -1,3 +1,5 @@
+"use client";
+
 export default function signup() {
     return (
         <main className="flex min-h-screen items-center justify-center bg-background px-5 py-12 text-foreground sm:px-8">
