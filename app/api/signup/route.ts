@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { signup } from "@/app/services/auth.service";
+import { AuthService } from "@/app/services/auth.service";
 
 export async function POST(request: Request) {
     try {
@@ -22,6 +22,17 @@ export async function POST(request: Request) {
             )
         }
 
+        // Validate Password Confirmation if missing
+        if (typeof body.confirmPassword !== "string" || !body.confirmPassword.trim()) {
+            return NextResponse.json(
+                { error: "Confirm Password is required." },
+                { status: 400 }
+            )
+        }
+
+        // Validate email is already exists
+        
+
         // Validate Password Confirmation
         if (body.password !== body.confirmPassword) {
             return NextResponse.json(
@@ -30,7 +41,7 @@ export async function POST(request: Request) {
             )
         }
         
-        const result = await signup({
+        const result = await AuthService.signup({
             firstName: body.firstName,
             lastName: body.lastName,
             email: body.email,
@@ -38,9 +49,7 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json({
-            message: result.message
-                ? "Account Created successfully"
-                : "Please check your email for confirmation.",
+            message: "If this email can be registered, you will receive a confirmation email."
         });
     } catch (error) {
         console.error("Signup Error:", error);
