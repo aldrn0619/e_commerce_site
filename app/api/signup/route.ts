@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AuthService } from "@/app/services/auth.service";
+import { AuthService, EmailAlreadyExistsError } from "@/app/services/auth.service";
 
 export async function POST(request: Request) {
     try {
@@ -52,6 +52,13 @@ export async function POST(request: Request) {
             message: "If this email can be registered, you will receive a confirmation email."
         });
     } catch (error) {
+        if (error instanceof EmailAlreadyExistsError) {
+            return NextResponse.json(
+                {error: error.message},
+                { status: 409 }
+            );
+        }
+
         console.error("Signup Error:", error);
 
         return NextResponse.json(

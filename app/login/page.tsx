@@ -1,4 +1,55 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+
 export default function login() {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setIsSubmitting(true);
+    setMessage("");
+    setError("");
+
+    const formData = new FormData(event.currentTarget);
+
+    const payload = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    }
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result: { message?: string; error?: string } = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || "Login failed. Please try again later.");
+        return;
+      }
+
+      setMessage(result.message || "You have successfully logged in.");
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError("Login failed. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-5 py-12 text-foreground sm:px-8">
       <section
@@ -20,20 +71,23 @@ export default function login() {
           </p>
         </header>
 
-        <div className="space-y-5">
+        {error && <p role="alert">{error}</p>}
+        {message && <p role="alert">{message}</p>}
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label
-              htmlFor="username"
+              htmlFor="email"
               className="block text-sm font-medium"
             >
-              Username
+              Email address
             </label>
             <input
-              id="username"
-              name="username"
-              type="text"
-              autoComplete="username"
-              placeholder="Enter your username"
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="Enter your email"
               className="h-12 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none transition-colors placeholder:text-muted/70 hover:border-foreground/25 focus:border-accent focus:ring-4 focus:ring-accent/10 motion-reduce:transition-none"
             />
           </div>
@@ -56,12 +110,13 @@ export default function login() {
           </div>
 
           <button
-            type="button"
+            type="submit"
+            disabled={isSubmitting}
             className="mt-2 h-12 w-full rounded-xl bg-accent px-4 text-sm font-semibold text-surface transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:bg-accent-hover motion-reduce:transition-none"
           >
-            Sign in
+            {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
-        </div>
+        </form>
 
         <p className="mt-8 border-t border-border pt-6 text-center text-sm text-muted">
           Don&apos;t have an account?{" "}
